@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport"
+		content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+	<title>테마 등록</title>
+	<link th:if="${userRole != null}" th:href="@{/css/inc/superHeader.css}" rel="stylesheet" type="text/css">
+	<link th:if="${admin != null && userRole ==null}" th:href="@{/css/inc/adminHeader.css}" rel="stylesheet"
+		type="text/css">
+	<link th:href="@{/css/inc/footer.css}" rel="stylesheet" type="text/css">
+	<script th:src="@{/js/inc/footer.js}"></script>
+	<link th:href="@{/css/thema/themaForm.css}" rel="stylesheet" type="text/css">
+
+<script th:inline="javascript">
+	//장르 1개 이상 선택
+    function validateGenreSelection() {
+        var genreSelect = document.getElementById("genreSelect");
+        var genreError = document.getElementById("genreError");
+
+        // 선택된 옵션의 수 확인
+        var selectedOptions = genreSelect.selectedOptions;
+        if (selectedOptions.length === 0) {
+            genreError.innerText = "하나 이상의 장르를 선택하세요.";
+            return false;
+        } else {
+            genreError.innerText = ""; // 에러 메시지 초기화
+            return true;
+        }
+    }
+
+    document.querySelector("form").addEventListener("submit", function (event) {
+        if (!validateGenreSelection()) {
+            event.preventDefault(); // 폼 제출을 막음
+        }
+    });
+    
+    //하나 이상의 예약 가능시간
+function validateTimeFields() {
+    var timeContainer = document.getElementById("timeContainer");
+    var timeError = document.getElementById("timeError");
+    
+    // "time" 배열 가져오기
+    var timeInputs = timeContainer.querySelectorAll('input[type="time"]');
+    
+    if (timeInputs.length > 0) {
+        // 예약 가능 시간 갯수 확인
+        var selectedTimeInputs = timeContainer.querySelectorAll('input[type="time"]:required');
+        
+        if (selectedTimeInputs.length === 0) {
+            timeError.innerText = "하나 이상의 예약 가능 시간을 입력하세요.";
+            return false;
+        } else {
+            timeError.innerText = ""; // 에러 메시지 초기화
+            return true;
+        }
+    }
+    
+    // "time" 배열이 존재하지 않는 경우
+    timeError.innerText = "예약 가능 시간을 입력하세요.";
+    return false;
+}
+
+document.querySelector("form").addEventListener("submit", function (event) {
+    if (!validateTimeFields()) {
+        event.preventDefault(); // 폼 제출을 막음
+    }
+});
+
+
+</script>
+
+</head>
+
+<body>
+	<header>
+		<block th:if="${userRole!=null}">
+			<div th:replace="~{inc/superHeader :: headerMenu}"></div>
+		</block>
+		<block th:unless="${userRole!=null}">
+			<div th:replace="~{inc/adminHeader :: headerMenu}"></div>
+		</block>
+	</header>
+	<div class="container">
+		<form th:action="@{/thema/reg}" method="post" enctype="multipart/form-data" th:object="${thema}">
+			<h2>테마 등록</h2>
+			<table>
+				<tr>
+					<td>지점ID</td>
+					<td>
+						<select name="branchId" id="branchId" required>
+							<option value="">-- 선택하세요 --</option>
+							<option th:each="branch: ${branchList}" th:value="${branch.branchId}"
+								th:text="${branch.name}">
+							</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+				    <td>타이틀</td>
+				    <td>
+				        <input type="text" th:field="*{title}" name="title" required="required" />
+				        <div th:if="${#fields.hasErrors('title')}" class="error-message" th:errors="*{title}">
+				            유효한 타이틀을 입력하세요.
+				        </div>
+				    </td>
+				</tr>
+				<tr>
+				    <td>내용</td>
+				    <td>
+				        <input type="text" th:field="*{content}" required="required" />
+				        <div th:if="${contenterror}" class="error-message">
+				            <ul>
+				                <li th:text="${contenterror.defaultMessage}"></li>
+				            </ul>
+				        </div>
+				    </td>
+				</tr>
+				<tr>
+					<td>포스터</td>
+					<td>
+						<th:block th:if="${thema.poster != null}">
+
+							<input type="text" th:field="*{poster}" readonly />
+							<input type="button" onclick="fileDelete()" value="파일삭제" />
+						</th:block>
+						<input th:if="${thema.poster == null}" type="file" th:field="*{mmff}" />
+					</td>
+				</tr>
+				<tr>
+					<td>장르</td>
+					<td>
+						<select th:field="*{type}">
+							<option value=""></option>
+							<option value="판타지">판타지</option>
+							<option value="코미디">코미디</option>
+							<option value="로맨스">로맨스</option>
+							<option value="공포">공포</option>
+							<option value="잠입">잠입</option>
+							<option value="추리">추리</option>
+							<option value="드라마">드라마</option>
+							<option value="SF">SF</option>
+						</select>
+						<!--              <span class="input-group-text"></span>-->
+						<select th:field="*{type}">
+							<option value=""></option>
+							<option value="판타지">판타지</option>
+							<option value="코미디">코미디</option>
+							<option value="로맨스">로맨스</option>
+							<option value="공포">공포</option>
+							<option value="잠입">잠입</option>
+							<option value="추리">추리</option>
+							<option value="드라마">드라마</option>
+							<option value="SF">SF</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+				    <td>가격</td>
+				    <td>
+				        <div class="input-group">
+				            <input type="number" th:field="*{price}" required="required" class="form-control" min="0" />
+				            <span class="input-group-text">원</span>
+				        </div>
+				        <div th:if="${priceerror}" class="error-message">
+				            유효한 가격을 입력하세요.
+				        </div>
+				    </td>
+				</tr>
+				<tr>
+				    <td>예약금</td>
+				    <td>
+				        <div class="input-group">
+				            <input type="number" th:field="*{rvPrice}" required="required" class="form-control" min="0" />
+				            <span class="input-group-text">원</span>
+				        </div>
+				        <div th:if="${rvPriceerror}" class="error-message">
+				            유효한 예약금을 입력하세요.
+				        </div>
+				    </td>
+				</tr>
+				<tr>
+					<td>인원수</td>
+					<td>
+						<div class="input-group">
+							<input type="number" th:field="*{people}" min="1" max="10" />
+
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td>난이도</td>
+					<td>
+						<input type="number" th:field="*{level}" step="1" min="0" max="5" />
+					</td>
+				</tr>
+
+				<tr>
+					<td>이용시간</td>
+					<td>
+						<input type="text" th:field="*{playTime}" />
+						<span class="input-group-text">분</span>
+						<div th:if="${playTimeerror}" class="alert alert-danger">
+							<ul>
+								<li text="유효한 시간을 작성해주세요"></li>
+							</ul>
+						</div>
+
+					</td>
+				</tr>
+				<tr>
+					<td>공포도</td>
+					<td>
+						<input type="number" th:field="*{horror}" step="1" min="0" max="5" />
+					</td>
+				</tr>
+				<tr>
+					<td>활동성</td>
+					<td>
+						<input type="number" th:field="*{activity}" step="1" min="0" max="10" />
+					</td>
+				</tr>
+					<!-- 예약 가능시간 -->
+					<tr>
+					    <td>예약가능시간</td>
+					    <td>
+					        <div id="timeContainer">
+					            <input th:each="time: ${thema.timetable}" type="time" th:name="time" th:value="${time}"
+					                   th:required="required" />
+					        </div>
+					        <button type="button" onclick="addTimeField()">추가</button>
+					        <button type="button" onclick="removeLastTimeField()">삭제</button>
+					        <div id="timeError" class="error-message"></div>
+					    </td>
+					</tr>
+				<tr>
+					<td colspan="2" align="center">
+						<button type="submit">등록</button>
+						<a th:href="@{/thema/themaList}"><button type="button">목록으로</button></a>
+					</td>
+				</tr>
+
+			</table>
+		</form>
+	</div>
+	<script th:inline="javascript">
+		/* 시간 입력 필드 추가 함수 */
+		function addTimeField() {
+			var container = document.getElementById("timeContainer");
+			var timeInputs = container.querySelectorAll('input[type="time"]');
+
+			// 예약 가능 시간 갯수가 12개 미만인 경우에만 추가
+			if (timeInputs.length < 12) {
+				var newInput = document.createElement("input");
+				newInput.type = "time";
+				newInput.name = "time";
+				newInput.step = 600;
+				container.appendChild(newInput);
+			}
+		}
+
+		/* 시간 입력 필드 삭제 함수 */
+		function removeLastTimeField() {
+			var container = document.getElementById("timeContainer");
+			var timeInputs = container.querySelectorAll('input[type="time"]');
+			if (timeInputs.length > 1) { // 최소 1개의 시간 입력 필드를 유지하기 위해 체크
+				container.removeChild(timeInputs[timeInputs.length - 1]);
+			}
+		}
+
+		/* 시간을 24시간 형식으로 변환하는 함수 */
+		function convertTo24HourFormat(inputElement) {
+			var timeValue = inputElement.value;
+			if (timeValue) {
+				var parts = timeValue.split(':');
+				var hours = parseInt(parts[0], 10);
+				var minutes = parts[1];
+
+				if (hours >= 1 && hours <= 11 && timeValue.includes("오후")) {
+					// 오전 시간 변환 (오후 1시 ~ 11시)
+					hours += 12;
+				} else if (hours === 12 && timeValue.includes("오전")) {
+					// 오전 12시 변환
+					hours = 0;
+				}
+
+				inputElement.value = hours.toString().padStart(2, '0') + ':' + minutes;
+			}
+		}
+
+		// 입력 필드에서 포커스를 잃었을 때 시간 형식을 변환합니다.
+		var timeInputs = document.querySelectorAll('input[type="time"]');
+		timeInputs.forEach(function (input) {
+			input.addEventListener('blur', function () {
+				convertTo24HourFormat(this);
+			});
+		});
+	</script>
+	<footer>
+		<div th:replace="~{inc/footer :: footer}"></div>
+	</footer>
+</body>
+
+
+</html>
